@@ -1,107 +1,120 @@
 package main
 
 import (
-	"fmt"
-	"image/color"
-	"time"
-
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/widget"
+	"github.com/RickardA/stop-watch/internal/app/gui"
 )
 
-var white = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-
-type StopWatch struct {
-	timer *time.Ticker
-}
-
 func main() {
-	sw := StopWatch{}
+	// port := "8081"
 
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Hello")
+	// ctx, cancelFunc := context.WithCancel(context.Background())
+	// defer cancelFunc()
 
-	content := container.New(layout.NewGridLayout(6))
+	// Setup Client
+	// srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{Client: client}}))
 
-	for i := 1; i <= 6; i++ {
-		content.Add(createLaneContainer(i))
-	}
+	// http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	// http.Handle("/query", srv)
 
-	myWindow.Resize(fyne.NewSize(800, 300))
+	// log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	// log.Fatal(http.ListenAndServe(":"+port, nil))
 
-	timerText, topBarContainer := createTopBarContainer()
-
-	bottomBarContainer := createBottomBarContainer(func() {
-		// Start
-		sw.timer = time.NewTicker(time.Millisecond)
-
-		go func(timerText *canvas.Text) {
-			counter := 0
-			for range sw.timer.C {
-				counter += 1
-				timerText.Text = msToTime(counter)
-				timerText.Refresh()
-			}
-		}(timerText)
-	}, func() {
-		sw.timer.Stop()
-	})
-
-	mainContainer := container.New(layout.NewBorderLayout(topBarContainer, bottomBarContainer, nil, nil),
-		topBarContainer, bottomBarContainer, content)
-
-	myWindow.SetContent(mainContainer)
-	myWindow.Show()
-	myApp.Run()
+	gui.NewApp("Stop Watch")
 }
 
-func msToTime(ms int) string {
-	minutes := 0
-	seconds := 0
-	centiSeconds := 0
+// var white = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 
-	centiMs := ms % 1000
-	if centiMs != 0 {
-		centiSeconds = centiMs / 10
-	}
+// type Lane struct {
+// 	number int
+// 	text   *canvas.Text
+// 	time   int
+// 	sw     *StopWatch
+// }
 
-	ms = ms - centiMs
+// func (l *Lane) StopTime() {
+// 	fmt.Println("Stop timsss")
+// 	l.time = l.sw.GetCurrentCount()
+// 	l.text.Text = msToTime(l.time)
+// 	l.text.Refresh()
+// }
 
-	tempSec := ms / 1000
+// func main() {
+// 	lanes := map[int]*Lane{}
+// 	sw := StopWatch{}
 
-	seconds = tempSec % 60
+// 	myApp := app.New()
+// 	myWindow := myApp.NewWindow("Hello")
 
-	tempSec = tempSec - seconds
+// 	content := container.New(layout.NewGridLayout(6))
 
-	minutes = tempSec / 60
+// 	for i := 1; i <= 6; i++ {
+// 		container, lane := createLaneContainer(i)
+// 		content.Add(container)
 
-	return fmt.Sprintf("%02d:%02d:%02d", minutes, seconds, centiSeconds)
-}
+// 		lane.sw = &sw
+// 		lanes[lane.number] = lane
+// 	}
 
-func createTopBarContainer() (*canvas.Text, *fyne.Container) {
-	timerText := canvas.NewText("00:00:00", color.White)
-	timerText.TextSize = 50
-	return timerText, container.New(layout.NewHBoxLayout(), layout.NewSpacer(), timerText, layout.NewSpacer())
-}
+// 	myWindow.Resize(fyne.NewSize(800, 300))
 
-func createBottomBarContainer(startCallback func(), stopCallback func()) *fyne.Container {
-	startBtn := widget.NewButton("STARTA", startCallback)
-	stopBtn := widget.NewButton("STANNA", stopCallback)
-	btnContainer := container.New(layout.NewHBoxLayout(), startBtn, stopBtn)
-	bottomBarContainer := container.New(layout.NewCenterLayout(), layout.NewSpacer(), btnContainer, layout.NewSpacer())
+// 	timerText, topBarContainer := createTopBarContainer()
 
-	return bottomBarContainer
-}
+// 	bottomBarContainer := createBottomBarContainer(func() {
+// 		// Start
+// 		sw.timer = time.NewTicker(time.Millisecond)
 
-func createLaneContainer(laneNumber int) *fyne.Container {
-	laneTitle := canvas.NewText(fmt.Sprintf("Bana %d", laneNumber), white)
-	timeText := canvas.NewText("00.00.00", white)
-	laneTitle.TextSize = 20
-	timeText.TextSize = 20
-	vbox := container.New(layout.NewVBoxLayout(), laneTitle, timeText)
-	return container.New(layout.NewHBoxLayout(), layout.NewSpacer(), vbox, layout.NewSpacer())
-}
+// 		go func(timerText *canvas.Text, sw *StopWatch, lanes map[int]*Lane) {
+// 			sw.counter = 0
+// 			for range sw.timer.C {
+// 				sw.counter += 1
+// 				timerText.Text = msToTime(sw.counter)
+// 				timerText.Refresh()
+
+// 				if sw.counter == 10000 {
+// 					lanes[1].StopTime()
+// 				}
+// 			}
+// 		}(timerText, &sw, lanes)
+// 	}, func() {
+// 		sw.timer.Stop()
+// 	})
+
+// 	mainContainer := container.New(layout.NewBorderLayout(topBarContainer, bottomBarContainer, nil, nil),
+// 		topBarContainer, bottomBarContainer, content)
+
+// 	myWindow.SetContent(mainContainer)
+// 	myWindow.Show()
+// 	myApp.Run()
+// }
+
+// func createTopBarContainer() (*canvas.Text, *fyne.Container) {
+// 	timerText := canvas.NewText("00:00:00", color.White)
+// 	timerText.TextSize = 50
+// 	return timerText, container.New(layout.NewHBoxLayout(), layout.NewSpacer(), timerText, layout.NewSpacer())
+// }
+
+// func createBottomBarContainer(startCallback func(), stopCallback func()) *fyne.Container {
+// 	startBtn := widget.NewButton("STARTA", startCallback)
+// 	stopBtn := widget.NewButton("STANNA", stopCallback)
+// 	btnContainer := container.New(layout.NewHBoxLayout(), startBtn, stopBtn)
+// 	bottomBarContainer := container.New(layout.NewCenterLayout(), layout.NewSpacer(), btnContainer, layout.NewSpacer())
+
+// 	return bottomBarContainer
+// }
+
+// func createLaneContainer(laneNumber int) (*fyne.Container, *Lane) {
+// 	laneTitle := canvas.NewText(fmt.Sprintf("Bana %d", laneNumber), white)
+// 	timeText := canvas.NewText("00.00.00", white)
+// 	laneTitle.TextSize = 20
+// 	timeText.TextSize = 20
+// 	vbox := container.New(layout.NewVBoxLayout(), laneTitle, timeText)
+// 	hbox := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), vbox, layout.NewSpacer())
+
+// 	l := Lane{
+// 		number: laneNumber,
+// 		text:   timeText,
+// 		time:   0,
+// 	}
+
+// 	return hbox, &l
+// }
