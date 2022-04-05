@@ -48,6 +48,10 @@ func (sw *StopWatch) GetCurrentCount() int {
 	return sw.counter
 }
 
+func (sw *StopWatch) GetCurrentCountFormatted() string {
+	return sw.msToTime(sw.counter)
+}
+
 func (sw *StopWatch) msToTime(ms int) string {
 	minutes := 0
 	seconds := 0

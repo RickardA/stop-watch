@@ -5,14 +5,13 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/RickardA/stop-watch/graph/generated"
 )
 
 func (r *mutationResolver) SendStopSignal(ctx context.Context, lane int) (int, error) {
-	fmt.Println("Stop time for lane")
-	return 0, nil
+	*r.StopChan <- lane
+	return lane, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

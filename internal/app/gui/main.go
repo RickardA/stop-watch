@@ -21,9 +21,10 @@ type App struct {
 	app           *fyne.App
 	Sw            *stop_watch.StopWatch
 	lanes         []*Lane
+	stopChan      *chan int
 }
 
-func NewApp(name string) *App {
+func NewApp(name string, stopChan *chan int) {
 	myApp := app.New()
 	mainWindow := myApp.NewWindow(name)
 
@@ -31,6 +32,7 @@ func NewApp(name string) *App {
 		mainWindow: &mainWindow,
 		app:        &myApp,
 		Sw:         stop_watch.NewStopWatch(),
+		stopChan:   stopChan,
 	}
 
 	mainWindow.Resize(fyne.NewSize(800, 300))
@@ -47,19 +49,28 @@ func NewApp(name string) *App {
 
 	mainWindow.SetContent(mainContainer)
 	mainWindow.Show()
-	myApp.Run()
 
-	return &app
+	go app.listenOnStopChan()
+
+	// Will not continue after this....
+	myApp.Run()
 }
 
-func (a App) createMainTimer() (*canvas.Text, *fyne.Container) {
+func (a *App) listenOnStopChan() {
+	for laneNum := range *a.stopChan {
+		a.lanes[laneNum-1].text.Text = a.Sw.GetCurrentCountFormatted()
+		a.lanes[laneNum-1].text.Refresh()
+	}
+}
+
+func (a *App) createMainTimer() (*canvas.Text, *fyne.Container) {
 	timerText := canvas.NewText("00:00:00", color.White)
 	timerText.TextSize = 50
 	container := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), timerText, layout.NewSpacer())
 	return timerText, container
 }
 
-func (a App) createMainControls() *fyne.Container {
+func (a *App) createMainControls() *fyne.Container {
 	startBtn := widget.NewButton("STARTA", a.startBtnPressed)
 	stopBtn := widget.NewButton("STANNA", a.stopBtnPressed)
 	btnContainer := container.New(layout.NewHBoxLayout(), startBtn, stopBtn)
@@ -68,31 +79,32 @@ func (a App) createMainControls() *fyne.Container {
 	return bottomBarContainer
 }
 
-func (a App) createLanes() *fyne.Container {
+func (a *App) createLanes() *fyne.Container {
 
 	lanesContainer := container.New(layout.NewGridLayout(6))
 
 	for i := 1; i < 7; i++ {
 		l := NewLane(i, a.Sw)
 		lanesContainer.Add(l.Container)
+		a.lanes = append(a.lanes, l)
 	}
 
 	return lanesContainer
 }
 
-func (a App) startBtnPressed() {
+func (a *App) startBtnPressed() {
 	a.Sw.Start()
 	go a.updateTimerText()
 }
 
-func (a App) updateTimerText() {
+func (a *App) updateTimerText() {
 	for time := range a.Sw.C {
 		a.mainTimerText.Text = time
 		a.mainTimerText.Refresh()
 	}
 }
 
-func (a App) stopBtnPressed() {
+func (a *App) stopBtnPressed() {
 	a.Sw.Stop()
 }
 
