@@ -8,7 +8,7 @@
           "mode": "debug",
           "program": "${workspaceFolder}/cmd",
           "args": [],
-          "cwd": "{workspaceFolder}"
+          "cwd": "{workspaceFolder}",
         }
       ]
     }

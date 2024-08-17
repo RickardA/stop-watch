@@ -1,13 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/RickardA/stop-watch/graph"
-	"github.com/RickardA/stop-watch/graph/generated"
 	"github.com/RickardA/stop-watch/internal/app/gui"
 )
 
@@ -17,13 +14,39 @@ func main() {
 	stopChan := make(chan int, 1)
 
 	// Setup Client
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{StopChan: &stopChan}}))
+	srv := http.NewServeMux()
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	srv.Handle("/query", stopHandler{StopChan: &stopChan})
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	go http.ListenAndServe(":"+port, nil)
+	go http.ListenAndServe(":"+port, srv)
 
 	gui.NewApp("Stop Watch", &stopChan)
+}
+
+type stopHandler struct {
+	StopChan *chan int
+}
+
+func (sh stopHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var data stopData
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Println(data.Lane)
+
+	if data.Lane == 0 {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	*sh.StopChan <- data.Lane
+}
+
+type stopData struct {
+	Lane int `json:"lane"`
 }
